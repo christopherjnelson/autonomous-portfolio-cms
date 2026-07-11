@@ -18,11 +18,12 @@ A lightweight, server-side rendered portfolio website built with **Astro** and c
 
 - **Dark-mode-preferred UI** — clean, minimal slate/sky theme with a sticky top navigation bar featuring a cartoon avatar, social icons (LinkedIn, GitHub), and a responsive hamburger menu for mobile.
 - **About section** — short introduction to Chris, an IT administrator specializing in cloud identity and endpoint management.
-- **Skills grid** — skills fetched from Supabase, grouped by category.
+- **Skills grid** — skills fetched from Supabase, grouped by category (excludes Certifications).
+- **Certifications section** — certifications separated from skills into their own full-width section. If a `url` is provided, the cert renders as a clickable external link with an icon.
 - **Achievements feed** — latest 5 achievement posts fetched from Supabase, ordered by date descending, rendered as a timeline.
 - **Projects stub** — placeholder section for future project highlights.
-- **FAQ accordion** — 12 frequently asked questions using native `<details>`/`<summary>` elements with progressive disclosure (first 5 visible, "Show all" button reveals the rest).
 - **Ziggy AI chat widget** — floating chat widget (bottom-right) with a toggle button, message bubbles, typing indicator, and vanilla JS. Proxied through an Astro API route to an n8n webhook to avoid CORS issues.
+- **Enhanced footer** — 3-column layout with navigation links, social links (LinkedIn, GitHub), and humorous "AI Reviews" from Gemini, ChatGPT, and Grok with stylized logos.
 - **JSON health endpoint** — `GET /api/test` returns `{"status":"Node SSR is active"}` to verify server endpoints.
 - **n8n webhook endpoint** — `POST /api/webhooks/achievement` accepts authorized POST requests to insert new achievements into Supabase.
 
@@ -129,9 +130,9 @@ portfolio/
     ├── components/
     │   └── ChatWidget.astro # Floating "Ziggy" AI chat widget (vanilla JS)
     ├── layouts/
-    │   └── Layout.astro    # Dark-mode shell + responsive nav (hamburger on mobile) with avatar, socials + global ChatWidget
+    │   └── Layout.astro    # Dark-mode shell + responsive nav + enhanced footer (nav, socials, AI reviews) + global ChatWidget
     └── pages/
-        ├── index.astro     # Home: SSR fetch from Supabase (skills + achievements feed) + FAQ accordion
+        ├── index.astro     # Home: SSR fetch from Supabase (skills, certifications, achievements feed)
         └── api/
             ├── test.ts              # GET /api/test → {"status":"Node SSR is active"}
             ├── chat.ts              # POST /api/chat → proxy to n8n webhook for Ziggy AI
@@ -171,11 +172,12 @@ curl -X POST http://localhost:4321/api/webhooks/achievement \
 The Supabase project requires two tables:
 
 ### `skills`
-| Column     | Type    | Description                |
-| ---------- | ------- | -------------------------- |
-| `id`       | int     | Primary key                |
-| `name`     | text    | Skill name                 |
-| `category` | text    | Category (e.g., "Cloud")   |
+| Column     | Type    | Description                                          |
+| ---------- | ------- | ---------------------------------------------------- |
+| `id`       | int     | Primary key                                          |
+| `name`     | text    | Skill name                                           |
+| `category` | text    | Category (e.g., "Cloud", "Certifications")           |
+| `url`      | text    | Optional URL (for certifications, renders as link)   |
 
 ### `posts`
 | Column    | Type    | Description                                  |
@@ -205,11 +207,13 @@ CREATE POLICY "Allow anon insert on posts" ON posts FOR INSERT TO anon WITH CHEC
 
 - [x] ~~Replace mock data with a real data layer (database/API)~~ — **Done: Supabase integration**
 - [x] ~~Secure webhook endpoint for n8n achievement posts~~ — **Done**
-- [x] ~~FAQ accordion with progressive disclosure~~ — **Done: 12 items, show/hide pattern**
 - [x] ~~Nav avatar with circular border~~ — **Done: `public/avatar.png`**
 - [x] ~~Ziggy AI chat widget with n8n proxy~~ — **Done: floating widget, vanilla JS, API proxy route**
 - [x] ~~Responsive mobile nav + social icons~~ — **Done: hamburger menu, LinkedIn/GitHub icons (christopherjnelson)**
-- [ ] **Feed pagination / progressive disclosure** — Implement "Load More" pattern for the achievements feed (fetch 20 from Supabase, show 5, reveal next 5 on click). Matches the FAQ progressive disclosure pattern. Prevents the page from growing infinitely tall as backdated/backfilled items accumulate. Alternative options considered: horizontal carousel, SSR query-param pagination, 2-column grid.
+- [x] ~~Certifications section with URL links~~ — **Done: split from Skills, full-width, external link support**
+- [x] ~~Enhanced footer with AI reviews~~ — **Done: 3-column footer (nav, socials, Gemini/ChatGPT/Grok reviews)**
+- [x] ~~FAQ section removed~~ — **Done: FAQ data moved to Ziggy chatbot**
+- [ ] **Feed pagination / progressive disclosure** — Implement "Load More" pattern for the achievements feed (fetch 20 from Supabase, show 5, reveal next 5 on click). Prevents the page from growing infinitely tall as backdated/backfilled items accumulate.
 - [ ] Add authentication & admin middleware for content management
 - [ ] Build out the Projects section with detail pages
 - [ ] Add RSS/Atom feed for achievements
