@@ -30,6 +30,72 @@ const formatDate = (iso: string) =>
     month: 'short',
     day: 'numeric',
   });
+
+// FAQ items (static content)
+const faqItems = [
+  {
+    question: 'What does Chris actually do day-to-day?',
+    answer:
+      'Chris manages cloud identity platforms — primarily Google Workspace and Microsoft 365 — handles endpoint provisioning via MDM, tunes VPN and zero-trust access, and automates repetitive admin tasks with PowerShell and Python scripts.',
+  },
+  {
+    question: 'What certifications does Chris hold?',
+    answer:
+      'Chris holds the Google Workspace Administrator certification and is actively working toward Microsoft 365 Administrator and Azure Solutions Architect Expert certifications.',
+  },
+  {
+    question: 'How does Chris approach automation?',
+    answer:
+      'Chris believes in automating anything done more than twice. He uses PowerShell for Microsoft 365 tasks, Python for cross-platform scripting, and n8n for orchestrating workflows that connect multiple systems together.',
+  },
+  {
+    question: 'What tools does Chris use for endpoint management?',
+    answer:
+      'Chris relies on Android Enterprise and Apple Business Manager for zero-touch enrollment, combined with MDM profile deployment for configuration and policy enforcement across mixed-device fleets.',
+  },
+  {
+    question: 'What is Chris\'s philosophy on security?',
+    answer:
+      'Chris follows a defense-in-depth approach: enforce MFA everywhere, implement zero-trust network access, maintain least-privilege IAM policies, and continuously audit access logs for anomalies.',
+  },
+  {
+    question: 'Does Chris work with cloud infrastructure beyond SaaS?',
+    answer:
+      'Yes. Beyond Google Workspace and M365, Chris works with AWS IAM and S3 for cloud storage, manages Nginx reverse proxies for self-hosted services, and configures DNS and DHCP for on-premises infrastructure.',
+  },
+  {
+    question: 'How does Chris handle identity management at scale?',
+    answer:
+      'Chris implements SSO using SAML and OIDC through Okta and Azure AD (Entra ID), consolidating identity providers and reducing password fatigue while maintaining strict access controls and audit trails.',
+  },
+  {
+    question: 'What is Chris\'s approach to documentation?',
+    answer:
+      'Chris documents everything — runbooks, architecture diagrams, onboarding guides, and automation scripts are all version-controlled. He believes good documentation is the difference between a one-person show and a scalable operation.',
+  },
+  {
+    question: 'Has Chris spoken at any events?',
+    answer:
+      'Yes, Chris delivered a talk on hardening remote access infrastructure at a regional IT administrators meetup, covering VPN gateway tuning and MFA enforcement strategies for distributed teams.',
+  },
+  {
+    question: 'What is Chris\'s stance on vendor lock-in?',
+    answer:
+      'Chris prefers open standards and interoperable protocols (SAML, OIDC, SCIM) over proprietary integrations. He designs architectures that can migrate between providers without complete rewrites.',
+  },
+  {
+    question: 'How does Chris stay current with technology?',
+    answer:
+      'Chris reads vendor changelogs and security advisories daily, participates in IT admin communities, tests new tools in a home lab environment, and pursues certifications to validate and structure his knowledge.',
+  },
+  {
+    question: 'Can Chris help with my migration project?',
+    answer:
+      'Chris has experience with cross-tenant migrations, including moving 200 mailboxes from on-premises Exchange to Microsoft 365 with zero data loss. Reach out via the contact information on this site to discuss specifics.',
+  },
+];
+
+const faqInitialCount = 5;
 ---
 
 <Layout>
@@ -115,4 +181,65 @@ const formatDate = (iso: string) =>
       Project highlights are coming soon. Check the feed for recent work.
     </p>
   </section>
+
+  <hr class="my-10 border-slate-800" />
+
+  <!-- FAQ -->
+  <section id="faq" class="scroll-mt-20">
+    <h2 class="text-2xl font-semibold tracking-tight text-slate-50">FAQ</h2>
+    <div class="mt-6 space-y-3">
+      {
+        faqItems.map((item, index) => (
+          <details
+            class={`group rounded-lg border border-slate-800 bg-slate-900/40 px-4 py-3 transition-colors hover:border-slate-700 ${index >= faqInitialCount ? 'faq-hidden hidden' : ''}`}
+          >
+            <summary class="flex cursor-pointer items-center justify-between text-sm font-medium text-slate-200 marker:hidden">
+              {item.question}
+              <span class="ml-4 flex-shrink-0 text-sky-400 transition-transform duration-200 group-open:rotate-45">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </span>
+            </summary>
+            <p class="mt-3 text-sm leading-relaxed text-slate-400">{item.answer}</p>
+          </details>
+        ))
+      }
+    </div>
+    {
+      faqItems.length > faqInitialCount && (
+        <button
+          id="faq-toggle"
+          class="mt-5 text-sm font-medium text-sky-400 hover:text-sky-300"
+          data-total={faqItems.length}
+        >
+          Show all {faqItems.length} questions
+        </button>
+      )
+    }
+  </section>
 </Layout>
+
+<script>
+  const toggleBtn = document.getElementById('faq-toggle');
+  const hiddenItems = document.querySelectorAll('.faq-hidden');
+
+  if (toggleBtn && hiddenItems.length > 0) {
+    toggleBtn.addEventListener('click', () => {
+      const isExpanded = toggleBtn.dataset.expanded === 'true';
+
+      hiddenItems.forEach((item) => {
+        item.classList.toggle('hidden', isExpanded);
+      });
+
+      if (isExpanded) {
+        toggleBtn.textContent = `Show all ${toggleBtn.dataset.total} questions`;
+        toggleBtn.dataset.expanded = 'false';
+      } else {
+        toggleBtn.textContent = 'Show fewer questions';
+        toggleBtn.dataset.expanded = 'true';
+      }
+    });
+  }
+</script>

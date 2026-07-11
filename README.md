@@ -15,11 +15,12 @@ A lightweight, server-side rendered portfolio website built with **Astro** and c
 
 ## Features
 
-- **Dark-mode-preferred UI** — clean, minimal slate/sky theme with a sticky top navigation bar.
+- **Dark-mode-preferred UI** — clean, minimal slate/sky theme with a sticky top navigation bar featuring a cartoon avatar.
 - **About section** — short introduction to Chris, an IT administrator specializing in cloud identity and endpoint management.
 - **Skills grid** — skills fetched from Supabase, grouped by category.
 - **Achievements feed** — latest 5 achievement posts fetched from Supabase, ordered by date descending, rendered as a timeline.
 - **Projects stub** — placeholder section for future project highlights.
+- **FAQ accordion** — 12 frequently asked questions using native `<details>`/`<summary>` elements with progressive disclosure (first 5 visible, "Show all" button reveals the rest).
 - **JSON health endpoint** — `GET /api/test` returns `{"status":"Node SSR is active"}` to verify server endpoints.
 - **n8n webhook endpoint** — `POST /api/webhooks/achievement` accepts authorized POST requests to insert new achievements into Supabase.
 
@@ -112,6 +113,8 @@ portfolio/
 ├── package.json
 ├── .env                    # Environment variables (not committed)
 ├── .gitignore
+├── public/
+│   └── avatar.png          # Cartoon avatar for nav bar
 └── src/
     ├── styles/
     │   └── global.css      # Tailwind v4 import + dark mode variant
@@ -119,9 +122,9 @@ portfolio/
     │   ├── supabase.ts     # Supabase client initialization
     │   └── mockData.ts     # Legacy mock data (no longer imported)
     ├── layouts/
-    │   └── Layout.astro    # Dark-mode shell + top nav (About, Skills, Feed, Projects)
+    │   └── Layout.astro    # Dark-mode shell + top nav with avatar (About, Skills, Feed, Projects, FAQ)
     └── pages/
-        ├── index.astro     # Home: SSR fetch from Supabase (skills + achievements feed)
+        ├── index.astro     # Home: SSR fetch from Supabase (skills + achievements feed) + FAQ accordion
         └── api/
             ├── test.ts              # GET /api/test → {"status":"Node SSR is active"}
             └── webhooks/
@@ -183,6 +186,9 @@ CREATE POLICY "Allow anon insert on posts" ON posts FOR INSERT TO anon WITH CHEC
 
 - [x] ~~Replace mock data with a real data layer (database/API)~~ — **Done: Supabase integration**
 - [x] ~~Secure webhook endpoint for n8n achievement posts~~ — **Done**
+- [x] ~~FAQ accordion with progressive disclosure~~ — **Done: 12 items, show/hide pattern**
+- [x] ~~Nav avatar with circular border~~ — **Done: `public/avatar.png`**
+- [ ] **Feed pagination / progressive disclosure** — Implement "Load More" pattern for the achievements feed (fetch 20 from Supabase, show 5, reveal next 5 on click). Matches the FAQ progressive disclosure pattern. Prevents the page from growing infinitely tall as backdated/backfilled items accumulate. Alternative options considered: horizontal carousel, SSR query-param pagination, 2-column grid.
 - [ ] Add authentication & admin middleware for content management
 - [ ] Build out the Projects section with detail pages
 - [ ] Add RSS/Atom feed for achievements
