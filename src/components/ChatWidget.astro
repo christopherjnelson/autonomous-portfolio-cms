@@ -71,6 +71,14 @@
 </div>
 
 <script>
+  import { marked } from 'marked';
+
+  // Configure marked for safe parsing
+  marked.setOptions({
+    breaks: true, // Convert \n to <br>
+    gfm: true, // GitHub-flavored markdown
+  });
+
   const fab = document.getElementById('chat-fab');
   const chatWindow = document.getElementById('chat-window');
   const iconOpen = document.getElementById('chat-icon-open');
@@ -96,6 +104,47 @@
     }
   }
 
+  // Sanitize HTML to prevent XSS from markdown output
+  function sanitizeHtml(html: string): string {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT, null);
+
+    const elementsToRemove: Element[] = [];
+    let node: Node | null = walker.currentNode;
+
+    while (node) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node as Element;
+
+        // Remove script and style tags entirely
+        if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE') {
+          elementsToRemove.push(el);
+        }
+
+        // Strip dangerous attributes (on* event handlers, javascript: URLs)
+        for (const attr of Array.from(el.attributes)) {
+          if (attr.name.startsWith('on')) {
+            el.removeAttribute(attr.name);
+          }
+          if ((attr.name === 'href' || attr.name === 'src') && attr.value.trim().toLowerCase().startsWith('javascript:')) {
+            el.removeAttribute(attr.name);
+          }
+        }
+      }
+      node = walker.nextNode();
+    }
+
+    elementsToRemove.forEach((el) => el.remove());
+
+    return doc.body.innerHTML;
+  }
+
+  // Convert markdown to sanitized HTML
+  function renderMarkdown(text: string): string {
+    const rawHtml = marked.parse(text) as string;
+    return sanitizeHtml(rawHtml);
+  }
+
   // Append a message bubble
   function appendMessage(text: string, sender: 'user' | 'bot') {
     if (!messages) return;
@@ -107,12 +156,12 @@
     bubble.className =
       sender === 'user'
         ? 'max-w-[80%] rounded-2xl rounded-tr-sm bg-sky-500 px-3 py-2 text-sm text-white'
-        : 'max-w-[80%] rounded-2xl rounded-tl-sm bg-slate-800 px-3 py-2 text-sm text-slate-200';
+        : 'chat-bubble max-w-[80%] rounded-2xl rounded-tl-sm bg-slate-800 px-3 py-2 text-sm text-slate-200';
 
-    // Bot responses use innerHTML to render HTML formatting from the server.
-    // User input uses textContent to prevent XSS.
+    // Bot responses: parse markdown to HTML, sanitize, then render.
+    // User input: use textContent to prevent XSS.
     if (sender === 'bot') {
-      bubble.innerHTML = text;
+      bubble.innerHTML = renderMarkdown(text);
     } else {
       bubble.textContent = text;
     }
@@ -188,3 +237,89 @@
     }
   });
 </script>
+
+<style>
+  /* Markdown formatting styles for chat bubbles */
+  .chat-bubble p {
+    margin: 0;
+  }
+  .chat-bubble p + p {
+    margin-top: 0.5rem;
+  }
+  .chat-bubble ul {
+    margin: 0.25rem 0;
+    padding-left: 1.25rem;
+    list-style-type: disc;
+  }
+  .chat-bubble ol {
+    margin: 0.25rem 0;
+    padding-left: 1.25rem;
+    list-style-type: decimal;
+  }
+  .chat-bubble li {
+    margin: 0.125rem 0;
+  }
+  .chat-bubble strong {
+    font-weight: 600;
+    color: rgb(255 255 255);
+  }
+  .chat-bubble em {
+    font-style: italic;
+  }
+  .chat-bubble code {
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    background: rgb(15 23 42);
+    font-size: 0.8125rem;
+    font-family: ui-monospace, monospace;
+    color: rgb(125 211 252);
+  }
+  .chat-bubble pre {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    background: rgb(15 23 42);
+    overflow-x: auto;
+  }
+  .chat-bubble pre code {
+    padding: 0;
+    background: none;
+    color: rgb(226 232 240);
+  }
+  .chat-bubble a {
+    color: rgb(56 189 248);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .chat-bubble a:hover {
+    color: rgb(125 211 252);
+  }
+  .chat-bubble h1,
+  .chat-bubble h2,
+  .chat-bubble h3 {
+    font-weight: 600;
+    color: rgb(255 255 255);
+    margin: 0.5rem 0 0.25rem;
+  }
+  .chat-bubble h1 {
+    font-size: 1rem;
+  }
+  .chat-bubble h2 {
+    font-size: 0.9375rem;
+  }
+  .chat-bubble h3 {
+    font-size: 0.875rem;
+  }
+  .chat-bubble blockquote {
+    margin: 0.25rem 0;
+    padding-left: 0.75rem;
+    border-left: 2px solid rgb(56 189 248);
+    color: rgb(148 163 184);
+    font-style: italic;
+  }
+  .chat-bubble hr {
+    margin: 0.5rem 0;
+    border: none;
+    border-top: 1px solid rgb(51 65 85);
+  }
+</style>
