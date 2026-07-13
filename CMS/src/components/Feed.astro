@@ -1,0 +1,76 @@
+﻿---
+import type { Post } from '../types/post';
+import FeedCard from './FeedCard.astro';
+
+interface Props {
+  posts: Post[];
+  error?: boolean;
+}
+
+const { posts, error = false } = Astro.props;
+
+const PAGE_SIZE = 5;
+const showLoadMore = posts.length > PAGE_SIZE;
+---
+
+{
+  error ? (
+    <p class="mt-4 text-sm text-rose-400">
+      Unable to load the feed at this time.
+    </p>
+  ) : posts.length === 0 ? (
+    <p class="mt-4 text-sm text-slate-400">No posts yet. Check back soon.</p>
+  ) : (
+    <div>
+      <ol id="feed-list" class="mt-6 space-y-6 border-l border-slate-800 pl-6">
+        {posts.map((post, index) => (
+          <li class={`feed-item ${index >= PAGE_SIZE ? 'hidden' : ''}`}>
+            <FeedCard post={post} />
+          </li>
+        ))}
+      </ol>
+      {showLoadMore && (
+        <button
+          id="feed-load-more"
+          class="mt-6 inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm text-slate-300 transition-colors hover:border-sky-500 hover:bg-slate-800 hover:text-sky-400"
+        >
+          Load More
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+      )}
+    </div>
+  )
+}
+
+<script>
+  const PAGE_SIZE = 5;
+
+  const feedList = document.getElementById('feed-list');
+  const loadMoreBtn = document.getElementById('feed-load-more');
+
+  if (feedList && loadMoreBtn) {
+    const items = feedList.querySelectorAll<HTMLElement>('.feed-item');
+    let visibleCount = PAGE_SIZE;
+
+    loadMoreBtn.addEventListener('click', () => {
+      const nextBatch = PAGE_SIZE;
+      let revealed = 0;
+
+      items.forEach((item, index) => {
+        if (index >= visibleCount && index < visibleCount + nextBatch) {
+          item.classList.remove('hidden');
+          revealed++;
+        }
+      });
+
+      visibleCount += revealed;
+
+      // Hide button when all items are visible
+      if (visibleCount >= items.length) {
+        loadMoreBtn.classList.add('hidden');
+      }
+    });
+  }
+</script>

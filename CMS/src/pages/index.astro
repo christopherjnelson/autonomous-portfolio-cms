@@ -1,5 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Feed from '../components/Feed.astro';
+import type { Post } from '../types/post';
 import { supabase } from '../lib/supabase';
 
 // Fetch skills from Supabase
@@ -12,13 +14,12 @@ const { data: creds, error: credsError } = await supabase
   .from('creds')
   .select('name, category, url');
 
-// Fetch latest 5 achievement posts from Supabase
+// Fetch latest 20 posts from Supabase (all types)
 const { data: posts, error: postsError } = await supabase
   .from('posts')
-  .select('id, title, content, date')
-  .eq('type', 'achievement')
+  .select('id, title, content, type, date, issuer, image_url, url, source')
   .order('date', { ascending: false })
-  .limit(5);
+  .limit(20);
 
 // Group skills by category for the grid
 const skillsByCategory = (skills ?? []).reduce<Record<string, string[]>>(
@@ -38,12 +39,6 @@ const credsByCategory = (creds ?? []).reduce<Record<string, { name: string; url:
   {}
 );
 
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
 ---
 
 <Layout>
@@ -178,28 +173,7 @@ const formatDate = (iso: string) =>
   <!-- Feed -->
   <section id="feed" class="scroll-mt-20">
     <h2 class="text-2xl font-semibold tracking-tight text-slate-50">Feed</h2>
-    {
-      postsError ? (
-        <p class="mt-4 text-sm text-rose-400">
-          Unable to load the feed at this time.
-        </p>
-      ) : !posts || posts.length === 0 ? (
-        <p class="mt-4 text-sm text-slate-400">No achievements yet. Check back soon.</p>
-      ) : (
-        <ol class="mt-6 space-y-6 border-l border-slate-800 pl-6">
-          {posts.map((item) => (
-            <li class="relative">
-              <span class="absolute -left-[1.6rem] top-1.5 h-3 w-3 rounded-full bg-sky-400 ring-4 ring-slate-950" />
-              <p class="text-xs uppercase tracking-wider text-slate-500">
-                {formatDate(item.date)}
-              </p>
-              <h3 class="mt-1 text-lg font-semibold text-slate-100">{item.title}</h3>
-              <p class="mt-2 text-sm leading-relaxed text-slate-300">{item.content}</p>
-            </li>
-          ))}
-        </ol>
-      )
-    }
+    <Feed posts={(posts ?? []) as Post[]} error={!!postsError} />
   </section>
 
   <hr class="my-10 border-slate-800" />

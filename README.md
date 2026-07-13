@@ -141,6 +141,7 @@ GitHub Actions deployment secrets are configured in the repository settings, not
 - [x] Wiki links (wiki.chris.guru)
 - [x] GitHub Actions deployment to DigitalOcean (initial)
 - [x] Repository restructured into CMS + WORKFLOWS + docs
+- [x] Feed pagination / progressive disclosure (Load More pattern)
 
 ### In Progress
 
@@ -150,7 +151,6 @@ GitHub Actions deployment secrets are configured in the repository settings, not
 ### Planned
 
 - [ ] Export and commit sanitized n8n workflows
-- [ ] Feed pagination / progressive disclosure
 - [ ] Authentication & admin middleware for content management
 - [ ] Build out the Projects section with detail pages
 - [ ] RSS/Atom feed for achievements

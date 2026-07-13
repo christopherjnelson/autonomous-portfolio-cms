@@ -23,7 +23,7 @@ A lightweight, server-side rendered portfolio website built with **Astro** and c
 - **About section** — expanded two-paragraph bio covering Chris's decade of IT operations experience, hands-on technologies, and real-world achievements, with an inline link to [wiki.chris.guru](https://wiki.chris.guru).
 - **Skills grid** — skills fetched from Supabase, grouped by category. Includes a link button to [wiki.chris.guru](https://wiki.chris.guru) for in-depth skill documentation.
 - **Certifications section** — certifications and learning paths fetched from a dedicated `creds` table in Supabase, grouped by category in a grid layout (matching the Skills section). If a `url` is provided, the cred renders as a clickable external link with an icon.
-- **Achievements feed** — latest 5 achievement posts fetched from Supabase, ordered by date descending, rendered as a timeline.
+- **Activity feed** — latest 20 posts fetched from Supabase (all types), ordered by date descending, rendered as a timeline with progressive disclosure. The first 5 posts are visible on page load; a "Load More" button reveals the next 5 on click. Each post card includes source-specific icons (GitHub, Slack, Microsoft, Okta), type-based accent colors, optional image, and external link support.
 - **Projects stub** — placeholder section for future project highlights.
 - **Ziggy AI chat widget** — floating chat widget (bottom-right) with a toggle button, message bubbles, typing indicator, and vanilla JS. Proxied through an Astro API route to an n8n webhook to avoid CORS issues. Bot responses parse markdown via `marked` (bold, italic, lists, code, links, headings, blockquotes) with DOM-based sanitization for XSS safety; user input is escaped via `textContent`. Paragraph and `<br>` spacing tuned for readable multi-paragraph responses.
 - **Enhanced footer** — 3-column layout with navigation links, social links (LinkedIn, GitHub), and humorous "AI Reviews" from Gemini, ChatGPT, and Grok with stylized logos.
@@ -160,10 +160,13 @@ CMS/
     ├── styles/
     │   └── global.css      # Tailwind v4 import + dark mode variant
     ├── lib/
-    │   ├── supabase.ts     # Supabase client initialization
-    │   └── mockData.ts     # Legacy mock data (no longer imported)
+    │   └── supabase.ts     # Supabase client initialization
+    ├── types/
+    │   └── post.ts         # Post type definition (feed items)
     ├── components/
-    │   └── ChatWidget.astro # Floating "Ziggy" AI chat widget (vanilla JS)
+    │   ├── ChatWidget.astro # Floating "Ziggy" AI chat widget (vanilla JS)
+    │   ├── Feed.astro       # Activity feed timeline with "Load More" pagination
+    │   └── FeedCard.astro   # Individual feed card (source icons, badges, conditional fields)
     ├── layouts/
     │   └── Layout.astro    # Dark-mode shell + responsive nav + enhanced footer (nav, socials, AI reviews) + global ChatWidget
     └── pages/
@@ -222,13 +225,17 @@ The Supabase project requires three tables:
 | `url`      | text    | Optional URL (renders as external link with icon)    |
 
 ### `posts`
-| Column    | Type    | Description                                  |
-| --------- | ------- | -------------------------------------------- |
-| `id`      | int     | Primary key                                  |
-| `title`   | text    | Achievement title                            |
-| `content` | text    | Achievement description (3rd person)         |
-| `date`    | date    | Date of achievement (defaults to now)        |
-| `type`    | text    | Post type (e.g., `'achievement'`)            |
+| Column      | Type   | Description                                          |
+| ----------- | ------ | ---------------------------------------------------- |
+| `id`        | int    | Primary key                                          |
+| `title`     | text   | Post title (nullable)                                |
+| `content`   | text   | Post body / description (nullable)                   |
+| `type`      | text   | Post type (`'achievement'`, `'github_event'`, `'note'`) |
+| `date`      | date   | Date of post (defaults to now)                       |
+| `issuer`    | text   | Issuer name, e.g. certification provider (nullable)  |
+| `image_url` | text   | Optional image URL for the post card (nullable)      |
+| `url`       | text   | Optional external link for the post card (nullable)  |
+| `source`    | text   | Source system (`'github'`, `'slack'`, `'microsoft'`, `'okta'`) (nullable) |
 
 ### Row-Level Security (RLS)
 
@@ -262,7 +269,7 @@ CREATE POLICY "Allow anon insert on posts" ON posts FOR INSERT TO anon WITH CHEC
 - [x] ~~Favicon~~ — **Done: `public/favicon.png` linked in Layout.astro head**
 - [x] ~~Markdown formatting for Ziggy chat~~ — **Done: `marked` library with DOM-based sanitization**
 - [x] ~~Wiki links~~ — **Done: inline link in About + button in Skills section pointing to wiki.chris.guru**
-- [ ] **Feed pagination / progressive disclosure** — Implement "Load More" pattern for the achievements feed (fetch 20 from Supabase, show 5, reveal next 5 on click). Prevents the page from growing infinitely tall as backdated/backfilled items accumulate.
+- [x] ~~Feed pagination / progressive disclosure~~ — **Done: "Load More" pattern implemented in `Feed.astro` (fetch 20 from Supabase, show 5, reveal next 5 on click)**
 - [ ] Add authentication & admin middleware for content management
 - [ ] Build out the Projects section with detail pages
 - [ ] Add RSS/Atom feed for achievements
