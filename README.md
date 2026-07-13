@@ -30,7 +30,7 @@ flowchart LR
 autonomous-portfolio-cms/
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml          # GitHub Action: deploy to DigitalOcean (pending migration)
+│       └── deploy.yml          # GitHub Action: deploy to DigitalOcean
 ├── CMS/                        # Astro SSR portfolio website
 │   ├── src/
 │   ├── public/
@@ -68,7 +68,7 @@ Deployment and operational documentation. See [`docs/deployment.md`](docs/deploy
 
 ### `.github/workflows/`
 
-GitHub Actions CI/CD configuration. The deployment workflow is currently in transition — see [Deployment Status](#current-status-and-roadmap) below.
+GitHub Actions CI/CD configuration. The deployment workflow deploys to a DigitalOcean droplet via a dedicated `deploy` user with systemd-managed process — see [Deployment Status](#current-status-and-roadmap) below.
 
 ## Local CMS Development
 
@@ -126,7 +126,7 @@ GitHub Actions deployment secrets are configured in the repository settings, not
 
 - [`CMS/README.md`](CMS/README.md) — Full CMS documentation (features, API, database schema)
 - [`WORKFLOWS/README.md`](WORKFLOWS/README.md) — n8n workflow conventions and safety
-- [`docs/deployment.md`](docs/deployment.md) — Deployment model (current and planned)
+- [`docs/deployment.md`](docs/deployment.md) — Deployment model
 
 ## Current Status and Roadmap
 
@@ -142,11 +142,7 @@ GitHub Actions deployment secrets are configured in the repository settings, not
 - [x] GitHub Actions deployment to DigitalOcean (initial)
 - [x] Repository restructured into CMS + WORKFLOWS + docs
 - [x] Feed pagination / progressive disclosure (Load More pattern)
-
-### In Progress
-
-- [ ] **Deployment migration** — The GitHub Action (`.github/workflows/deploy.yml`) still references the old deployment process (`/home/chris/deploy.sh`). This is being migrated to a dedicated `deploy` user with restricted permissions. The YAML has intentionally not been updated yet.
-- [ ] **Deploy user migration** — A dedicated non-human `deploy` user is planned but not yet created. See [`docs/deployment.md`](docs/deployment.md) for the migration plan.
+- [x] Deployment migration — Dedicated `deploy` user with restricted permissions, systemd-managed process, and updated GitHub Action
 
 ### Planned
 

@@ -119,20 +119,20 @@ server {
 
 The repository includes a GitHub Actions workflow (`.github/workflows/deploy.yml` at the repository root) that automatically deploys to a DigitalOcean droplet on every push to the `main` branch.
 
-> **Note**: The deployment workflow is currently in transition. After the repository restructuring, the deploy script on the droplet will need updating to account for the new `CMS/` subdirectory. The YAML has intentionally not been modified yet. See [`docs/deployment.md`](../docs/deployment.md) for details.
+> **Note**: The deployment workflow uses a dedicated `deploy` user with restricted permissions and a systemd-managed process. See [`docs/deployment.md`](../docs/deployment.md) for details.
 
 ### How it works
 
 1. A push to `main` triggers the workflow
 2. The workflow uses [`appleboy/ssh-action`](https://github.com/appleboy/ssh-action) to SSH into the droplet
-3. It executes `sudo /home/chris/deploy.sh` on the droplet, which pulls the latest code, installs dependencies, builds, and restarts the Node server
+3. It executes `/home/deploy/deploy.sh` on the droplet, which pulls the latest code, installs dependencies, builds, and restarts the Node server via systemd
 
 ### Required GitHub Repository Secrets
 
 | Secret             | Description                                      |
 | ------------------ | ------------------------------------------------ |
 | `DROPLET_IP`       | IP address of the DigitalOcean droplet           |
-| `DROPLET_USER`     | SSH username (e.g., `chris`)                     |
+| `DROPLET_USER`     | SSH username (e.g., `deploy`)                    |
 | `SSH_PRIVATE_KEY`  | Private SSH key authorized on the droplet        |
 
 ### Manual deployment
@@ -140,7 +140,8 @@ The repository includes a GitHub Actions workflow (`.github/workflows/deploy.yml
 If needed, you can still deploy manually by SSHing into the droplet and running:
 
 ```bash
-sudo /home/chris/deploy.sh
+ssh deploy@<droplet-ip>
+/home/deploy/deploy.sh
 ```
 
 ## Project Structure
@@ -273,7 +274,7 @@ CREATE POLICY "Allow anon insert on posts" ON posts FOR INSERT TO anon WITH CHEC
 - [ ] Add authentication & admin middleware for content management
 - [ ] Build out the Projects section with detail pages
 - [ ] Add RSS/Atom feed for achievements
-- [x] ~~CI/CD pipeline for automated deployment~~ — **Done: GitHub Action deploys to DigitalOcean droplet via SSH on push to main** (deploy script migration pending — see [docs/deployment.md](../docs/deployment.md))
+- [x] ~~CI/CD pipeline for automated deployment~~ — **Done: GitHub Action deploys to DigitalOcean droplet via SSH on push to main using a dedicated `deploy` user with systemd-managed process** (see [docs/deployment.md](../docs/deployment.md))
 
 ## License
 
