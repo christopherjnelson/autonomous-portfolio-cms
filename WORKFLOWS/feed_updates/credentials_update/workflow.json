@@ -1,0 +1,579 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://www.credly.com/users/christopherjnelson/badges.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -352,
+        -112
+      ],
+      "id": "77f57d96-0b3f-46bb-98d3-8fa23f367f4c",
+      "name": "getJSONFromCredly"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"badges\": [\n    {\n      \"badge_name\": \"Example badge name\",\n      \"badge_image_url\": \"https://example.com/badge.svg\",\n      \"badge_url\": \"https://example.com/badge\",\n      \"completion_date\": \"2026-06-24\",\n      \"description\": \"A brief description of the badge.\"\n    }\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -272,
+        416
+      ],
+      "id": "3f0f9bef-4557-4750-9094-4948e83f80b0",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        384,
+        16
+      ],
+      "id": "ae8a38ce-2b2d-4bd6-a60d-878f0e2d589c",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "tableId": "posts",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "issuer",
+              "fieldValue": "={{ $('Compare Datasets').item.json.issuer }}"
+            },
+            {
+              "fieldId": "title",
+              "fieldValue": "={{ $('Compare Datasets').item.json.title }}"
+            },
+            {
+              "fieldId": "image_url",
+              "fieldValue": "={{ $('Compare Datasets').item.json.image_url }}"
+            },
+            {
+              "fieldId": "date",
+              "fieldValue": "={{ $('Compare Datasets').item.json.date }}"
+            },
+            {
+              "fieldId": "url",
+              "fieldValue": "={{ $('Compare Datasets').item.json.url }}"
+            },
+            {
+              "fieldId": "content",
+              "fieldValue": "={{ $json.text }}"
+            },
+            {
+              "fieldId": "source",
+              "fieldValue": "={{ $('Compare Datasets').item.json.source }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        160
+      ],
+      "id": "1cb9f581-ed38-49c0-8c62-243e0c60efab",
+      "name": "Create a row",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "operation": "scrape",
+        "url": "https://learn.microsoft.com/en-us/users/christopherjnelson/",
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        192
+      ],
+      "id": "f85a3ee7-f3f9-403c-98ab-41282a413c56",
+      "name": "GetMSBadges",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional copywriter formatting events for Chris's timeline. You will receive an Event Type, Title, Issuer, and Raw Description.\n\nInstructions based on Event Type:\n\nIf Event Type is 'achievement': Write exactly in this format: \"Chris has completed the [Title] from [Issuer]. He is now familiar with [1-2 sentences summarizing the skills from the description].\"\n\nIf Event Type is 'github_event': Write exactly in this format: \"Chris just pushed a change to [Issuer] and updated [1-2 sentences summarizing the technical changes from the description].\"\n\nInput Data:\nEvent Type: {{ $json.type }}\nTitle: {{ $json.title }}\nIssuer: {{ $json.issuer }}\nDescription: {{ $json.content }}\n\nOutput ONLY the final rewritten paragraph. Do not include introductory text, markdown formatting, or quotes.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        832,
+        160
+      ],
+      "id": "b5b54609-2cd7-4c06-97ec-b7ebbc24a2ca",
+      "name": "Copywriter"
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3.6-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        912,
+        384
+      ],
+      "id": "2dca6116-facb-4cb1-8415-2c7d715824e3",
+      "name": "Qwen-3.6-Flash",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "model": "z-ai/glm-5.2",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        416
+      ],
+      "id": "fbc9972a-46eb-43fb-9288-88ecd26b5e22",
+      "name": "GLM-5.3",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.data }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "Find each individual badge for Christopher Nelson and extract it's name, badge image url, link and completion date. If no description for the badge is available, please generate a short description with any available information -- No longer than 3 sentences. "
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -416,
+        192
+      ],
+      "id": "b690e9b4-375f-431f-b92c-5a673db3ab82",
+      "name": "FormatData",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e20bc1e9-ca04-4dca-b55d-63dbf8dab7f9",
+              "name": "issuer",
+              "value": "={{ $json.issuer.entities[0].entity.name }}",
+              "type": "string"
+            },
+            {
+              "id": "a477748e-9531-4f16-8b03-8b63fd75a219",
+              "name": "image_url",
+              "value": "={{ $json.badge_template.image_url }}",
+              "type": "string"
+            },
+            {
+              "id": "78667a18-bc6e-4fbf-949b-2c2ab87f24bb",
+              "name": "title",
+              "value": "={{ $json.badge_template.name }}",
+              "type": "string"
+            },
+            {
+              "id": "88d29345-ec8f-4950-9e68-29fcc21e635b",
+              "name": "date",
+              "value": "={{ $json.issued_at }}",
+              "type": "string"
+            },
+            {
+              "id": "a2ceaf00-cc76-4c29-9fac-7b7b1fefb938",
+              "name": "url",
+              "value": "={{ $json.badge_template.earn_this_badge_url }}",
+              "type": "string"
+            },
+            {
+              "id": "15baae46-aa97-4cdc-b41d-8f2cb4164278",
+              "name": "content",
+              "value": "={{ $json.badge_template.description }}",
+              "type": "string"
+            },
+            {
+              "id": "43601141-a257-449c-8e48-9630e7c7349e",
+              "name": "source",
+              "value": "Credly",
+              "type": "string"
+            },
+            {
+              "id": "cc8519bd-96e7-4188-9c56-ef166d97df60",
+              "name": "type",
+              "value": "achievement",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        -112
+      ],
+      "id": "4f959c94-e2ff-458c-a87f-fefbdee026cc",
+      "name": "SetCredlyData"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e20bc1e9-ca04-4dca-b55d-63dbf8dab7f9",
+              "name": "issuer",
+              "value": "Microsoft",
+              "type": "string"
+            },
+            {
+              "id": "a477748e-9531-4f16-8b03-8b63fd75a219",
+              "name": "image_url",
+              "value": "={{ $json.badge_image_url }}",
+              "type": "string"
+            },
+            {
+              "id": "78667a18-bc6e-4fbf-949b-2c2ab87f24bb",
+              "name": "title",
+              "value": "={{ $json.badge_name }}",
+              "type": "string"
+            },
+            {
+              "id": "88d29345-ec8f-4950-9e68-29fcc21e635b",
+              "name": "date",
+              "value": "={{ $json.completion_date ? new Date($json.completion_date).toISOString() : '' }}",
+              "type": "string"
+            },
+            {
+              "id": "a2ceaf00-cc76-4c29-9fac-7b7b1fefb938",
+              "name": "url",
+              "value": "={{ $json.badge_url }}",
+              "type": "string"
+            },
+            {
+              "id": "cb54b2fb-61cd-489a-85dd-cd12aabd449c",
+              "name": "content",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "101e2220-eea6-4016-b1d5-d814365d294f",
+              "name": "source",
+              "value": "Microsoft Learning",
+              "type": "string"
+            },
+            {
+              "id": "1bd95114-b579-421a-b698-323bb64ddc06",
+              "name": "type",
+              "value": "achievement",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        192
+      ],
+      "id": "887beb58-cf37-47a0-81b2-faa6ce813640",
+      "name": "SetMSData"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        -112
+      ],
+      "id": "901db0b9-3377-461c-add1-497c4d25b930",
+      "name": "SplitCredlyItems"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output.badges",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        192
+      ],
+      "id": "8322a1b2-e869-452f-b001-283da4769fd9",
+      "name": "SplitMSItems"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "posts",
+        "returnAll": true,
+        "filterType": "none"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        384,
+        432
+      ],
+      "id": "c160adc9-0b13-4eb8-9eab-09a716b1faad",
+      "name": "GetExistingPosts",
+      "executeOnce": true,
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "title",
+              "field2": "title"
+            },
+            {
+              "field1": "url",
+              "field2": "url"
+            }
+          ]
+        },
+        "resolve": "preferInput1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.compareDatasets",
+      "typeVersion": 2.3,
+      "position": [
+        608,
+        128
+      ],
+      "id": "4d5d42a1-684f-4336-abce-629987fd56c0",
+      "name": "Compare Datasets"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 12
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -864,
+        192
+      ],
+      "id": "27d6fbfb-ec0b-4df3-ba1f-db0d51adb8a3",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "connections": {
+    "getJSONFromCredly": {
+      "main": [
+        [
+          {
+            "node": "SplitCredlyItems",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "FormatData",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Compare Datasets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetMSBadges": {
+      "main": [
+        [
+          {
+            "node": "FormatData",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copywriter": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qwen-3.6-Flash": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Copywriter",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GLM-5.3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "FormatData",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FormatData": {
+      "main": [
+        [
+          {
+            "node": "SplitMSItems",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SetCredlyData": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SetMSData": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "SplitCredlyItems": {
+      "main": [
+        [
+          {
+            "node": "SetCredlyData",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SplitMSItems": {
+      "main": [
+        [
+          {
+            "node": "SetMSData",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetExistingPosts": {
+      "main": [
+        [
+          {
+            "node": "Compare Datasets",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Compare Datasets": {
+      "main": [
+        [
+          {
+            "node": "Copywriter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "getJSONFromCredly",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GetMSBadges",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GetExistingPosts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": ""
+  }
+}
