@@ -28,11 +28,11 @@
       <div class="flex h-9 w-9 items-center justify-center rounded-full bg-sky-500/20 text-sm font-bold text-sky-400">
         Z
       </div>
-      <span class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-slate-900 bg-emerald-400"></span>
+      <span id="chat-status-dot" class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-slate-900 bg-emerald-400"></span>
     </div>
     <div>
       <p class="text-sm font-semibold text-slate-100">Ziggy</p>
-      <p class="text-xs text-emerald-400">Online</p>
+      <p id="chat-status-text" class="text-xs text-emerald-400">Online</p>
     </div>
   </div>
 
@@ -90,6 +90,32 @@
 
   // Generate a unique session ID for this chat session
   const sessionId = crypto.randomUUID();
+
+  // Check chatbot availability on page load
+  const statusDot = document.getElementById('chat-status-dot');
+  const statusText = document.getElementById('chat-status-text');
+
+  async function checkHealth() {
+    try {
+      const res = await fetch('/api/health');
+      const data = await res.json();
+
+      if (data.status === 'offline') {
+        statusDot?.classList.remove('bg-emerald-400');
+        statusDot?.classList.add('bg-rose-400');
+        statusText?.classList.remove('text-emerald-400');
+        statusText?.classList.add('text-rose-400');
+        if (statusText) statusText.textContent = 'Offline';
+        if (input) input.disabled = true;
+        if (sendBtn) sendBtn.disabled = true;
+        if (input) input.placeholder = 'Chat is currently unavailable';
+      }
+    } catch {
+      // If health check fails, leave as "Online" (optimistic)
+    }
+  }
+
+  checkHealth();
 
   // Toggle chat window
   fab?.addEventListener('click', () => {

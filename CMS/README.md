@@ -178,6 +178,7 @@ CMS/
         ├── index.astro     # Home: SSR fetch from Supabase (skills, creds, achievements feed)
         └── api/
             ├── test.ts              # GET /api/test → {"status":"Node SSR is active"}
+            ├── health.ts             # GET /api/health → {"status":"online"|"offline"} (n8n reachability)
             ├── chat.ts              # POST /api/chat → proxy to n8n webhook for Ziggy AI
             └── webhooks/
                 └── achievement.ts   # POST /api/webhooks/achievement → insert to Supabase
@@ -188,6 +189,7 @@ CMS/
 | Method | Route                          | Auth                          | Response                          | Description                                      |
 | ------ | ------------------------------ | ----------------------------- | --------------------------------- | ------------------------------------------------ |
 | `GET`  | `/api/test`                    | None                          | `{"status":"Node SSR is active"}` | Health check / SSR verification                  |
+| `GET`  | `/api/health`                   | None                          | `{"status":"online"|"offline"}`   | Check if n8n chat webhook is reachable           |
 | `POST` | `/api/chat`                    | None                          | `{"reply":"..."}`                 | Proxy user message to n8n webhook for Ziggy AI   |
 | `POST` | `/api/webhooks/achievement`    | `Authorization` header        | `{"success":true}`                | Insert a new achievement into Supabase (for n8n) |
 
