@@ -23,7 +23,7 @@ A lightweight, server-side rendered portfolio website built with **Astro** and c
 - **About section** — expanded two-paragraph bio covering Chris's decade of IT operations experience, hands-on technologies, and real-world achievements, with an inline link to [wiki.chris.guru](https://wiki.chris.guru).
 - **Skills grid** — skills fetched from Supabase, grouped by category. Includes a link button to [wiki.chris.guru](https://wiki.chris.guru) for in-depth skill documentation.
 - **Certifications section** — certifications and learning paths fetched from a dedicated `creds` table in Supabase, grouped by category in a grid layout (matching the Skills section). If a `url` is provided, the cred renders as a clickable external link with an icon.
-- **Activity feed** — latest 20 posts fetched from Supabase (all types), ordered by date descending, rendered as a timeline with progressive disclosure. The first 5 posts are visible on page load; a "Load More" button reveals the next 5 on click. Each post card includes source-specific icons (GitHub, Slack, Microsoft, Okta), type-based accent colors, optional image, and external link support.
+- **Activity feed** — latest 20 posts fetched from Supabase (all types), ordered by date descending, rendered as a timeline with progressive disclosure. The first 5 posts are visible on page load; a "Load More" button reveals the next 5 on click and disappears once everything is shown. Source filter tabs ("All" plus one tab per distinct `source` value found in the fetched posts) let visitors narrow the timeline; pagination resets per tab and "Load More" pages within the active filter. Each post card includes source-specific icons (GitHub, Slack, Microsoft, Okta), type-based accent colors, optional image, and external link support.
 - **Projects section** — public GitHub repositories fetched server-side from the GitHub API (`christopherjnelson`), filtered to exclude forks and sorted by star count. Each repo renders as a card with name, description, language badge, star count, and last updated date.
 - **Ziggy AI chat widget** — floating chat widget (bottom-right) with a toggle button, message bubbles, typing indicator, and vanilla JS. Proxied through an Astro API route to an n8n webhook to avoid CORS issues. Bot responses parse markdown via `marked` (bold, italic, lists, code, links, headings, blockquotes) with DOM-based sanitization for XSS safety; user input is escaped via `textContent`. Paragraph and `<br>` spacing tuned for readable multi-paragraph responses.
 - **Enhanced footer** — 3-column layout with navigation links, social links (LinkedIn, GitHub), and humorous "AI Reviews" from Gemini, ChatGPT, and Grok with stylized logos.
@@ -169,7 +169,7 @@ CMS/
     │   └── repo.ts         # GitHub repo type definition (projects)
     ├── components/
     │   ├── ChatWidget.astro # Floating "Ziggy" AI chat widget (vanilla JS)
-    │   ├── Feed.astro       # Activity feed timeline with "Load More" pagination
+    │   ├── Feed.astro       # Activity feed timeline with source filter tabs + "Load More" pagination
     │   ├── FeedCard.astro   # Individual feed card (source icons, badges, conditional fields)
     │   └── ProjectCard.astro # GitHub repo card (name, description, language, stars)
     ├── layouts/
@@ -277,6 +277,7 @@ CREATE POLICY "Allow anon insert on posts" ON posts FOR INSERT TO anon WITH CHEC
 - [x] ~~Markdown formatting for Ziggy chat~~ — **Done: `marked` library with DOM-based sanitization**
 - [x] ~~Wiki links~~ — **Done: inline link in About + button in Skills section pointing to wiki.chris.guru**
 - [x] ~~Feed pagination / progressive disclosure~~ — **Done: "Load More" pattern implemented in `Feed.astro` (fetch 20 from Supabase, show 5, reveal next 5 on click)**
+- [x] ~~Feed source filters~~ — **Done: tab bar in `Feed.astro` generated from the distinct `source` values in the fetched posts ("All" + one tab per source); pagination resets per tab**
 - [ ] Add authentication & admin middleware for content management
 - [x] ~~Build out the Projects section~~ — **Done: GitHub repos fetched server-side via GitHub API, rendered as cards with star count, language, and last updated**
 - [ ] Add RSS/Atom feed for achievements

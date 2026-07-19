@@ -11,6 +11,9 @@ const { posts, error = false } = Astro.props;
 
 const PAGE_SIZE = 5;
 const showLoadMore = posts.length > PAGE_SIZE;
+
+// Build the tab list from the sources actually present in the posts
+const sources = [...new Set(posts.map((p) => p.source).filter((s): s is string => !!s))];
 ---
 
 {
@@ -22,9 +25,31 @@ const showLoadMore = posts.length > PAGE_SIZE;
     <p class="mt-4 text-sm text-slate-400">No posts yet. Check back soon.</p>
   ) : (
     <div>
+      {sources.length > 0 && (
+        <div class="mt-6 flex flex-wrap gap-2" role="group" aria-label="Filter feed by source">
+          <button
+            type="button"
+            data-source="all"
+            aria-pressed="true"
+            class="feed-tab rounded-lg border border-sky-500 bg-slate-800 px-3 py-1.5 text-sm text-sky-400 transition-colors hover:border-sky-500 hover:bg-slate-800 hover:text-sky-400"
+          >
+            All
+          </button>
+          {sources.map((source) => (
+            <button
+              type="button"
+              data-source={source}
+              aria-pressed="false"
+              class="feed-tab rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-sky-500 hover:bg-slate-800 hover:text-sky-400"
+            >
+              {source}
+            </button>
+          ))}
+        </div>
+      )}
       <ol id="feed-list" class="mt-6 space-y-6 border-l border-slate-800 pl-6">
         {posts.map((post, index) => (
-          <li class={`feed-item ${index >= PAGE_SIZE ? 'hidden' : ''}`}>
+          <li class={`feed-item ${index >= PAGE_SIZE ? 'hidden' : ''}`} data-source={post.source ?? ''}>
             <FeedCard post={post} />
           </li>
         ))}
@@ -49,28 +74,54 @@ const showLoadMore = posts.length > PAGE_SIZE;
 
   const feedList = document.getElementById('feed-list');
   const loadMoreBtn = document.getElementById('feed-load-more');
+  const tabs = document.querySelectorAll<HTMLButtonElement>('.feed-tab');
 
-  if (feedList && loadMoreBtn) {
-    const items = feedList.querySelectorAll<HTMLElement>('.feed-item');
+  if (feedList) {
+    const items = Array.from(feedList.querySelectorAll<HTMLElement>('.feed-item'));
+    let activeSource = 'all';
     let visibleCount = PAGE_SIZE;
 
-    loadMoreBtn.addEventListener('click', () => {
-      const nextBatch = PAGE_SIZE;
-      let revealed = 0;
+    const applyView = () => {
+      const matches = items.filter(
+        (item) => activeSource === 'all' || item.dataset.source === activeSource
+      );
 
-      items.forEach((item, index) => {
-        if (index >= visibleCount && index < visibleCount + nextBatch) {
-          item.classList.remove('hidden');
-          revealed++;
-        }
+      items.forEach((item) => item.classList.add('hidden'));
+      matches.forEach((item, index) => {
+        if (index < visibleCount) item.classList.remove('hidden');
       });
 
-      visibleCount += revealed;
-
-      // Hide button when all items are visible
-      if (visibleCount >= items.length) {
-        loadMoreBtn.classList.add('hidden');
+      // Use inline style instead of the `hidden` class: under Tailwind v4 the
+      // `.inline-flex` utility is emitted after `.hidden`, so the class cannot
+      // hide this button. Inline styles always win.
+      if (loadMoreBtn) {
+        loadMoreBtn.style.display = matches.length > visibleCount ? '' : 'none';
       }
+    };
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        activeSource = tab.dataset.source ?? 'all';
+        visibleCount = PAGE_SIZE;
+
+        tabs.forEach((t) => {
+          const isActive = t === tab;
+          t.setAttribute('aria-pressed', String(isActive));
+          t.classList.toggle('border-sky-500', isActive);
+          t.classList.toggle('bg-slate-800', isActive);
+          t.classList.toggle('text-sky-400', isActive);
+          t.classList.toggle('border-slate-700', !isActive);
+          t.classList.toggle('bg-slate-800/50', !isActive);
+          t.classList.toggle('text-slate-300', !isActive);
+        });
+
+        applyView();
+      });
+    });
+
+    loadMoreBtn?.addEventListener('click', () => {
+      visibleCount += PAGE_SIZE;
+      applyView();
     });
   }
 </script>
